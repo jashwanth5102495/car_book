@@ -43,8 +43,11 @@ const Home: React.FC = () => {
       console.log('API response:', response);
       console.log('Cars data:', response.data);
       
+      // Handle the nested response structure from backend
+      const carsData = response.data.cars || response.data;
+      
       // If API returns empty or fails, use sample data
-      if (!response.data || response.data.length === 0) {
+      if (!carsData || carsData.length === 0) {
         console.log('No cars from API, using sample data');
         const sampleCars = [
           {
@@ -122,7 +125,7 @@ const Home: React.FC = () => {
         ];
         setCars(sampleCars);
       } else {
-        setCars(response.data);
+        setCars(carsData);
       }
     } catch (error) {
       console.error('Error fetching cars:', error);

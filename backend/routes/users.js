@@ -1,6 +1,6 @@
 import express from 'express';
 import User from '../models/User.js';
-import { authenticateToken, requireAdmin } from '../middleware/auth.js';
+import auth, { authenticateToken, requireAdmin } from '../middleware/auth.js';
 
 const router = express.Router();
 
