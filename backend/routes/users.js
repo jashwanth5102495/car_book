@@ -7,7 +7,7 @@ const router = express.Router();
 // Get all users (Admin only)
 router.get('/', authenticateToken, requireAdmin, async (req, res) => {
   try {
-    const users = await User.find({}, 'name email phone role isActive createdAt')
+    const users = await User.find({}, 'name email phone role isActive emailVerified createdAt')
       .sort({ createdAt: -1 });
 
     res.json(users);

@@ -27,6 +27,14 @@ router.post('/', auth, [
       return res.status(404).json({ message: 'Car not found' });
     }
 
+    console.log('Found car:', {
+      id: car._id,
+      make: car.make,
+      model: car.model,
+      pricePerDay: car.pricePerDay,
+      available: car.available
+    });
+
     if (!car.available) {
       return res.status(400).json({ message: 'Car is not available' });
     }
@@ -53,15 +61,40 @@ router.post('/', auth, [
     const days = Math.ceil((end - start) / (1000 * 60 * 60 * 24));
     const totalAmount = days * car.pricePerDay;
 
-    // Create booking
-    const booking = new Booking({
+    // Debug logging
+    console.log('Booking calculation:', {
+      startDate: start,
+      endDate: end,
+      days,
+      pricePerDay: car.pricePerDay,
+      totalAmount,
+      userId,
+      carId
+    });
+
+    // Validate dates and amount
+    if (isNaN(days) || days <= 0) {
+      return res.status(400).json({ message: 'Invalid date range' });
+    }
+
+    if (isNaN(totalAmount) || totalAmount <= 0) {
+      return res.status(400).json({ message: 'Invalid total amount calculation' });
+    }
+
+    // Create booking with only required fields
+    const bookingData = {
       user: userId,
       car: carId,
       startDate: start,
       endDate: end,
       totalAmount,
-      status: 'pending'
-    });
+      status: 'pending',
+      paymentStatus: 'pending',
+      paymentMethod: 'credit_card'
+    };
+
+    console.log('Creating booking with data:', bookingData);
+    const booking = new Booking(bookingData);
 
     await booking.save();
     await booking.populate(['user', 'car']);
@@ -91,6 +124,51 @@ router.get('/my-bookings', auth, async (req, res) => {
   }
 });
 
+// Get bookings for cars owned by the current user (for car owners)
+router.get('/owner-bookings', auth, async (req, res) => {
+  try {
+    const userId = req.user.userId;
+    
+    // Find all cars owned by the user
+    const ownedCars = await Car.find({ owner: userId }).select('_id');
+    const carIds = ownedCars.map(car => car._id);
+    
+    // Find all bookings for those cars
+    const bookings = await Booking.find({ car: { $in: carIds } })
+      .populate({
+        path: 'car',
+        select: 'make model year images location'
+      })
+      .populate({
+        path: 'user',
+        select: 'name email phone'
+      })
+      .sort({ createdAt: -1 });
+
+    // Transform the response to match the expected format
+    const transformedBookings = bookings.map(booking => ({
+      _id: booking._id,
+      car: booking.car,
+      customer: {
+        _id: booking.user._id,
+        name: booking.user.name,
+        email: booking.user.email,
+        phone: booking.user.phone
+      },
+      startDate: booking.startDate,
+      endDate: booking.endDate,
+      totalPrice: booking.totalAmount,
+      status: booking.status,
+      createdAt: booking.createdAt
+    }));
+
+    res.json(transformedBookings);
+  } catch (error) {
+    console.error('Get owner bookings error:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
 // Get all bookings (admin only)
 router.get('/', auth, async (req, res) => {
   try {
@@ -103,7 +181,7 @@ router.get('/', auth, async (req, res) => {
       .populate(['user', 'car'])
       .sort({ createdAt: -1 });
 
-    res.json(bookings);
+    res.json({ data: bookings });
   } catch (error) {
     console.error('Get all bookings error:', error);
     res.status(500).json({ message: 'Server error' });

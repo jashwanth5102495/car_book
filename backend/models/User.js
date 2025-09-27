@@ -25,7 +25,7 @@ const userSchema = new mongoose.Schema({
   },
   role: {
     type: String,
-    enum: ['customer', 'admin'],
+    enum: ['customer', 'car_owner', 'admin'],
     default: 'customer'
   },
   address: {
@@ -75,6 +75,16 @@ userSchema.virtual('fullName').get(function() {
 // Method to check if user is admin
 userSchema.methods.isAdmin = function() {
   return this.role === 'admin';
+};
+
+// Method to check if user is car owner
+userSchema.methods.isCarOwner = function() {
+  return this.role === 'car_owner';
+};
+
+// Method to check if user is customer
+userSchema.methods.isCustomer = function() {
+  return this.role === 'customer';
 };
 
 // Method to get public user data

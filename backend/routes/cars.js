@@ -87,13 +87,24 @@ router.get('/', async (req, res) => {
     const total = await Car.countDocuments(filter);
 
     res.json({
-      cars,
+      data: cars,
       totalPages: Math.ceil(total / options.limit),
       currentPage: options.page,
       total
     });
   } catch (error) {
     console.error('Get cars error:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+// Get cars owned by the current user (for renters)
+router.get('/my-cars', auth, async (req, res) => {
+  try {
+    const cars = await Car.find({ owner: req.user.id }).sort({ createdAt: -1 });
+    res.json({ data: cars });
+  } catch (error) {
+    console.error('Get my cars error:', error);
     res.status(500).json({ message: 'Server error' });
   }
 });
@@ -112,8 +123,8 @@ router.get('/:id', async (req, res) => {
   }
 });
 
-// Create new car (Admin only)
-router.post('/', auth, requireAdmin, upload.array('images', 5), [
+// Create new car (Authenticated users)
+router.post('/', auth, upload.array('images', 5), [
   body('make').notEmpty().withMessage('Make is required'),
   body('model').notEmpty().withMessage('Model is required'),
   body('year').isInt({ min: 1900, max: new Date().getFullYear() + 1 }).withMessage('Valid year is required'),
@@ -148,6 +159,9 @@ router.post('/', auth, requireAdmin, upload.array('images', 5), [
       carData.features = carData.features.split(',').map(f => f.trim());
     }
 
+    // Set the owner to the authenticated user
+    carData.owner = req.user.id;
+
     const car = new Car(carData);
     await car.save();
 
@@ -165,12 +179,17 @@ router.post('/', auth, requireAdmin, upload.array('images', 5), [
   }
 });
 
-// Update car (Admin only)
-router.put('/:id', auth, requireAdmin, upload.array('images', 5), async (req, res) => {
+// Update car (Car owner or Admin)
+router.put('/:id', auth, upload.array('images', 5), async (req, res) => {
   try {
     const car = await Car.findById(req.params.id);
     if (!car) {
       return res.status(404).json({ message: 'Car not found' });
+    }
+
+    // Check if user is the owner or admin
+    if (car.owner.toString() !== req.user.id && req.user.role !== 'admin') {
+      return res.status(403).json({ message: 'Not authorized to update this car' });
     }
 
     const updateData = req.body;
@@ -198,12 +217,17 @@ router.put('/:id', auth, requireAdmin, upload.array('images', 5), async (req, re
   }
 });
 
-// Delete car (Admin only)
-router.delete('/:id', auth, requireAdmin, async (req, res) => {
+// Delete car (Car owner or Admin)
+router.delete('/:id', auth, async (req, res) => {
   try {
     const car = await Car.findById(req.params.id);
     if (!car) {
       return res.status(404).json({ message: 'Car not found' });
+    }
+
+    // Check if user is the owner or admin
+    if (car.owner.toString() !== req.user.id && req.user.role !== 'admin') {
+      return res.status(403).json({ message: 'Not authorized to delete this car' });
     }
 
     await Car.findByIdAndDelete(req.params.id);
@@ -214,15 +238,26 @@ router.delete('/:id', auth, requireAdmin, async (req, res) => {
   }
 });
 
-// Toggle car availability (Admin only)
-router.patch('/:id/availability', auth, requireAdmin, async (req, res) => {
+// Toggle car availability (Car owner or Admin)
+router.patch('/:id/availability', auth, async (req, res) => {
   try {
     const car = await Car.findById(req.params.id);
     if (!car) {
       return res.status(404).json({ message: 'Car not found' });
     }
 
-    car.available = !car.available;
+    // Check if user is the owner or admin
+    if (car.owner.toString() !== req.user.id && req.user.role !== 'admin') {
+      return res.status(403).json({ message: 'Not authorized to modify this car' });
+    }
+
+    // Allow setting specific availability value or toggle
+    if (req.body.available !== undefined) {
+      car.available = req.body.available;
+    } else {
+      car.available = !car.available;
+    }
+    
     await car.save();
 
     res.json({
