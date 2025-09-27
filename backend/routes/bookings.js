@@ -18,7 +18,7 @@ router.post('/', auth, [
       return res.status(400).json({ errors: errors.array() });
     }
 
-    const { carId, startDate, endDate } = req.body;
+    const { carId, startDate, endDate, paymentStatus, status } = req.body;
     const userId = req.user.userId;
 
     // Check if car exists and is available
@@ -81,15 +81,15 @@ router.post('/', auth, [
       return res.status(400).json({ message: 'Invalid total amount calculation' });
     }
 
-    // Create booking with only required fields
+    // Create booking with required fields and optional status/payment fields
     const bookingData = {
       user: userId,
       car: carId,
       startDate: start,
       endDate: end,
       totalAmount,
-      status: 'pending',
-      paymentStatus: 'pending',
+      status: status || 'pending',
+      paymentStatus: paymentStatus || 'pending',
       paymentMethod: 'credit_card'
     };
 
