@@ -159,6 +159,21 @@ router.post('/', auth, upload.array('images', 5), [
       carData.features = carData.features.split(',').map(f => f.trim());
     }
 
+    // Handle nested location data from FormData
+    if (carData['location[address]']) {
+      carData.location = {
+        address: carData['location[address]'],
+        city: carData['location[city]'],
+        state: carData['location[state]'],
+        zipCode: carData['location[zipCode]']
+      };
+      // Clean up the FormData keys
+      delete carData['location[address]'];
+      delete carData['location[city]'];
+      delete carData['location[state]'];
+      delete carData['location[zipCode]'];
+    }
+
     // Set the owner to the authenticated user
     carData.owner = req.user.id;
 
@@ -171,10 +186,15 @@ router.post('/', auth, upload.array('images', 5), [
     });
   } catch (error) {
     console.error('Create car error:', error);
+    console.error('Error details:', error.message);
+    console.error('Car data received:', req.body);
     if (error.code === 11000) {
       res.status(400).json({ message: 'License plate or VIN already exists' });
+    } else if (error.name === 'ValidationError') {
+      const validationErrors = Object.values(error.errors).map(err => err.message);
+      res.status(400).json({ message: 'Validation error', errors: validationErrors });
     } else {
-      res.status(500).json({ message: 'Server error' });
+      res.status(500).json({ message: 'Server error', error: error.message });
     }
   }
 });

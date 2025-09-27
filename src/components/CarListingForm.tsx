@@ -10,7 +10,7 @@ interface CarFormData {
   fuel_type: string;
   seats: number;
   doors: number;
-  price_per_day: number;
+  pricePerDay: number;
   location: string;
   description: string;
   features: string[];
@@ -26,7 +26,7 @@ const CarListingForm: React.FC = () => {
     fuel_type: 'petrol',
     seats: 4,
     doors: 4,
-    price_per_day: 0,
+    pricePerDay: 0,
     location: '',
     description: '',
     features: []
@@ -116,8 +116,8 @@ const CarListingForm: React.FC = () => {
             </label>
             <input
               type="number"
-              name="price_per_day"
-              value={formData.price_per_day}
+              name="pricePerDay"
+              value={formData.pricePerDay}
               onChange={handleChange}
               min="0"
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"

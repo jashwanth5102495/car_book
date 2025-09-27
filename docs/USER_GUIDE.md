@@ -47,17 +47,6 @@ Welcome to the Car Rental Booking System! This guide will help you navigate and 
    - Password
 3. **Click "Login"** to access your account
 
-### Demo Accounts
-For testing purposes, you can use these demo accounts:
-
-**Regular User:**
-- Email: `user@example.com`
-- Password: `user123`
-
-**Admin User:**
-- Email: `admin@example.com`
-- Password: `admin123`
-
 ## Browsing Cars
 
 ### Homepage Features

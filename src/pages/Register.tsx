@@ -10,7 +10,7 @@ const Register: React.FC = () => {
     password: '',
     confirmPassword: '',
     phone: '',
-    role: 'user'
+    role: 'customer'
   });
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
@@ -50,14 +50,14 @@ const Register: React.FC = () => {
       // Redirect based on user role
       switch (formData.role) {
         case 'admin':
-          navigate('/admin');
+          navigate('/admin-dashboard');
           break;
-        case 'renter':
-          navigate('/renter-dashboard');
+        case 'car_owner':
+          navigate('/owner-dashboard');
           break;
-        case 'user':
+        case 'customer':
         default:
-          navigate('/dashboard');
+          navigate('/customer-dashboard');
           break;
       }
     } catch (err: any) {
@@ -68,15 +68,15 @@ const Register: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
       <div className="sm:mx-auto sm:w-full sm:max-w-md">
         <div className="flex justify-center">
           <Car className="h-12 w-12 text-blue-600" />
         </div>
-        <h2 className="mt-6 text-center text-3xl font-bold text-gray-900">
+        <h2 className="mt-6 text-center text-3xl font-bold text-gray-900 dark:text-white">
           Create your account
         </h2>
-        <p className="mt-2 text-center text-sm text-gray-600">
+        <p className="mt-2 text-center text-sm text-gray-600 dark:text-gray-300">
           Already have an account?{' '}
           <Link to="/login" className="font-medium text-blue-600 hover:text-blue-500">
             Sign in here
@@ -85,7 +85,7 @@ const Register: React.FC = () => {
       </div>
 
       <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
-        <div className="bg-white py-8 px-4 shadow sm:rounded-lg sm:px-10">
+        <div className="bg-white dark:bg-gray-800 py-8 px-4 shadow sm:rounded-lg sm:px-10">
           {error && (
             <div className="mb-4 bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-md">
               {error}
@@ -94,7 +94,7 @@ const Register: React.FC = () => {
 
           <form className="space-y-6" onSubmit={handleSubmit}>
             <div>
-              <label htmlFor="name" className="block text-sm font-medium text-gray-700">
+              <label htmlFor="name" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
                 Full Name
               </label>
               <div className="mt-1 relative">
@@ -104,7 +104,7 @@ const Register: React.FC = () => {
                   type="text"
                   autoComplete="name"
                   required
-                  className="appearance-none block w-full px-3 py-2 pl-10 border border-gray-300 rounded-md placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                  className="appearance-none block w-full px-3 py-2 pl-10 border border-gray-300 dark:border-gray-600 rounded-md placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-100 dark:text-gray-900"
                   placeholder="Enter your full name"
                   value={formData.name}
                   onChange={handleChange}
@@ -114,7 +114,7 @@ const Register: React.FC = () => {
             </div>
 
             <div>
-              <label htmlFor="email" className="block text-sm font-medium text-gray-700">
+              <label htmlFor="email" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
                 Email address
               </label>
               <div className="mt-1 relative">
@@ -124,7 +124,7 @@ const Register: React.FC = () => {
                   type="email"
                   autoComplete="email"
                   required
-                  className="appearance-none block w-full px-3 py-2 pl-10 border border-gray-300 rounded-md placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                  className="appearance-none block w-full px-3 py-2 pl-10 border border-gray-300 dark:border-gray-600 rounded-md placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-100 dark:text-gray-900"
                   placeholder="Enter your email"
                   value={formData.email}
                   onChange={handleChange}
@@ -134,7 +134,7 @@ const Register: React.FC = () => {
             </div>
 
             <div>
-              <label htmlFor="phone" className="block text-sm font-medium text-gray-700">
+              <label htmlFor="phone" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
                 Phone Number
               </label>
               <div className="mt-1 relative">
@@ -144,7 +144,7 @@ const Register: React.FC = () => {
                   type="tel"
                   autoComplete="tel"
                   required
-                  className="appearance-none block w-full px-3 py-2 pl-10 border border-gray-300 rounded-md placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                  className="appearance-none block w-full px-3 py-2 pl-10 border border-gray-300 dark:border-gray-600 rounded-md placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-100 dark:text-gray-900"
                   placeholder="Enter your phone number"
                   value={formData.phone}
                   onChange={handleChange}
@@ -160,30 +160,30 @@ const Register: React.FC = () => {
               <div className="space-y-3">
                 <div className="flex items-center">
                   <input
-                    id="role-user"
+                    id="role-customer"
                     name="role"
                     type="radio"
-                    value="user"
-                    checked={formData.role === 'user'}
+                    value="customer"
+                    checked={formData.role === 'customer'}
                     onChange={handleChange}
                     className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300"
                   />
-                  <label htmlFor="role-user" className="ml-3 block">
+                  <label htmlFor="role-customer" className="ml-3 block">
                     <div className="text-sm font-medium text-gray-900">Customer (Rent Cars)</div>
                     <div className="text-xs text-gray-500">Browse and rent cars from other owners</div>
                   </label>
                 </div>
                 <div className="flex items-center">
                   <input
-                    id="role-renter"
+                    id="role-car-owner"
                     name="role"
                     type="radio"
-                    value="renter"
-                    checked={formData.role === 'renter'}
+                    value="car_owner"
+                    checked={formData.role === 'car_owner'}
                     onChange={handleChange}
                     className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300"
                   />
-                  <label htmlFor="role-renter" className="ml-3 block">
+                  <label htmlFor="role-car-owner" className="ml-3 block">
                     <div className="text-sm font-medium text-gray-900">Car Owner (List My Cars)</div>
                     <div className="text-xs text-gray-500">List your cars for others to rent and earn money</div>
                   </label>
@@ -192,7 +192,7 @@ const Register: React.FC = () => {
             </div>
 
             <div>
-              <label htmlFor="password" className="block text-sm font-medium text-gray-700">
+              <label htmlFor="password" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
                 Password
               </label>
               <div className="mt-1 relative">
@@ -202,7 +202,7 @@ const Register: React.FC = () => {
                   type={showPassword ? 'text' : 'password'}
                   autoComplete="new-password"
                   required
-                  className="appearance-none block w-full px-3 py-2 pl-10 pr-10 border border-gray-300 rounded-md placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                  className="appearance-none block w-full px-3 py-2 pl-10 pr-10 border border-gray-300 dark:border-gray-600 rounded-md placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-100 dark:text-gray-900"
                   placeholder="Create a password"
                   value={formData.password}
                   onChange={handleChange}
@@ -223,7 +223,7 @@ const Register: React.FC = () => {
             </div>
 
             <div>
-              <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700">
+              <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
                 Confirm Password
               </label>
               <div className="mt-1 relative">
@@ -233,7 +233,7 @@ const Register: React.FC = () => {
                   type={showConfirmPassword ? 'text' : 'password'}
                   autoComplete="new-password"
                   required
-                  className="appearance-none block w-full px-3 py-2 pl-10 pr-10 border border-gray-300 rounded-md placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                  className="appearance-none block w-full px-3 py-2 pl-10 pr-10 border border-gray-300 dark:border-gray-600 rounded-md placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-100 dark:text-gray-900"
                   placeholder="Confirm your password"
                   value={formData.confirmPassword}
                   onChange={handleChange}

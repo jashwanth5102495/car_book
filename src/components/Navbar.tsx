@@ -1,11 +1,11 @@
 import React, { useState } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
-import { Car, User, LogOut, Menu, X, Settings, Sun, Moon } from 'lucide-react';
+import { Car, User, LogOut, Menu, X, Sun, Moon } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { useTheme } from '../contexts/ThemeContext';
 
 const Navbar: React.FC = () => {
-  const { user, logout } = useAuth();
+  const { user, logout, loginAsAdmin } = useAuth();
   const { isDark, toggleTheme } = useTheme();
   const navigate = useNavigate();
   const location = useLocation();
@@ -15,6 +15,18 @@ const Navbar: React.FC = () => {
     logout();
     navigate('/');
     setIsMenuOpen(false);
+  };
+
+  const handleAdminLogin = async () => {
+    try {
+      const success = await loginAsAdmin();
+      if (success) {
+        navigate('/admin-dashboard');
+        setIsMenuOpen(false);
+      }
+    } catch (error) {
+      console.error('Admin login failed:', error);
+    }
   };
 
   const isActive = (path: string) => location.pathname === path;
@@ -42,35 +54,37 @@ const Navbar: React.FC = () => {
             
             {user ? (
               <>
-                <Link 
-                  to="/dashboard" 
-                  className={`px-3 py-2 rounded-md text-sm font-medium transition-colors ${
-                    isActive('/dashboard') ? 'text-blue-600 bg-blue-50 dark:bg-blue-900/20' : 'text-gray-700 dark:text-gray-300 hover:text-blue-600'
-                  }`}
-                >
-                  Dashboard
-                </Link>
-                
-                {user.role === 'renter' && (
+                {/* Dashboard Link based on user role */}
+                {user.role === 'admin' && (
                   <Link 
-                    to="/renter-dashboard" 
+                    to="/admin-dashboard" 
                     className={`px-3 py-2 rounded-md text-sm font-medium transition-colors ${
-                      isActive('/renter-dashboard') ? 'text-blue-600 bg-blue-50 dark:bg-blue-900/20' : 'text-gray-700 dark:text-gray-300 hover:text-blue-600'
+                      isActive('/admin-dashboard') ? 'text-blue-600 bg-blue-50 dark:bg-blue-900/20' : 'text-gray-700 dark:text-gray-300 hover:text-blue-600'
+                    }`}
+                  >
+                    Admin Dashboard
+                  </Link>
+                )}
+                
+                {user.role === 'car_owner' && (
+                  <Link 
+                    to="/owner-dashboard" 
+                    className={`px-3 py-2 rounded-md text-sm font-medium transition-colors ${
+                      isActive('/owner-dashboard') ? 'text-blue-600 bg-blue-50 dark:bg-blue-900/20' : 'text-gray-700 dark:text-gray-300 hover:text-blue-600'
                     }`}
                   >
                     My Cars
                   </Link>
                 )}
                 
-                {user.role === 'admin' && (
+                {user.role === 'customer' && (
                   <Link 
-                    to="/admin-page" 
+                    to="/customer-dashboard" 
                     className={`px-3 py-2 rounded-md text-sm font-medium transition-colors ${
-                      isActive('/admin-page') ? 'text-blue-600 bg-blue-50 dark:bg-blue-900/20' : 'text-gray-700 dark:text-gray-300 hover:text-blue-600'
+                      isActive('/customer-dashboard') ? 'text-blue-600 bg-blue-50 dark:bg-blue-900/20' : 'text-gray-700 dark:text-gray-300 hover:text-blue-600'
                     }`}
                   >
-                    <Settings className="h-4 w-4 inline mr-1" />
-                    Admin
+                    My Bookings
                   </Link>
                 )}
                 
@@ -103,6 +117,13 @@ const Navbar: React.FC = () => {
                   title={isDark ? 'Switch to light mode' : 'Switch to dark mode'}
                 >
                   {isDark ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
+                </button>
+                
+                <button
+                  onClick={handleAdminLogin}
+                  className="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-md text-sm font-medium transition-colors"
+                >
+                  Admin
                 </button>
                 
                 <Link
@@ -154,17 +175,20 @@ const Navbar: React.FC = () => {
               
               {user ? (
                 <>
-                  <Link
-                    to="/dashboard"
-                    className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 dark:text-gray-300 hover:text-blue-600 hover:bg-gray-50 dark:hover:bg-gray-800"
-                    onClick={() => setIsMenuOpen(false)}
-                  >
-                    Dashboard
-                  </Link>
-                  
-                  {user.role === 'renter' && (
+                  {/* Dashboard Links for Mobile based on user role */}
+                  {user.role === 'admin' && (
                     <Link
-                      to="/renter-dashboard"
+                      to="/admin-dashboard"
+                      className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 dark:text-gray-300 hover:text-blue-600 hover:bg-gray-50 dark:hover:bg-gray-800"
+                      onClick={() => setIsMenuOpen(false)}
+                    >
+                      Admin Dashboard
+                    </Link>
+                  )}
+                  
+                  {user.role === 'car_owner' && (
+                    <Link
+                      to="/owner-dashboard"
                       className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 dark:text-gray-300 hover:text-blue-600 hover:bg-gray-50 dark:hover:bg-gray-800"
                       onClick={() => setIsMenuOpen(false)}
                     >
@@ -172,13 +196,13 @@ const Navbar: React.FC = () => {
                     </Link>
                   )}
                   
-                  {user.role === 'admin' && (
+                  {user.role === 'customer' && (
                     <Link
-                      to="/admin-page"
+                      to="/customer-dashboard"
                       className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 dark:text-gray-300 hover:text-blue-600 hover:bg-gray-50 dark:hover:bg-gray-800"
                       onClick={() => setIsMenuOpen(false)}
                     >
-                      Admin Panel
+                      My Bookings
                     </Link>
                   )}
                   
@@ -192,6 +216,12 @@ const Navbar: React.FC = () => {
                 </>
               ) : (
                 <>
+                  <button
+                    onClick={handleAdminLogin}
+                    className="block w-full text-left px-3 py-2 rounded-md text-base font-medium text-white bg-purple-600 hover:bg-purple-700"
+                  >
+                    Admin
+                  </button>
                   <Link
                     to="/login"
                     className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 dark:text-gray-300 hover:text-blue-600 hover:bg-gray-50 dark:hover:bg-gray-800"

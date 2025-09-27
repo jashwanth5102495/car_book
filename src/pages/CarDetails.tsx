@@ -4,13 +4,14 @@ import { MapPin, Users, Fuel, Settings, Star, Calendar, ArrowLeft } from 'lucide
 import { carsApi } from '../services/api';
 import { formatINR } from '../utils/currency';
 import { useAuth } from '../contexts/AuthContext';
+import BookingConfirmationModal from '../components/BookingConfirmationModal';
 
 interface Car {
   _id: string;
   model: string;
   brand: string;
   year: number;
-  price_per_day: number;
+  pricePerDay: number;
   location: string;
   image_url: string;
   fuel_type: string;
@@ -25,10 +26,19 @@ const CarDetails: React.FC = () => {
   const { user } = useAuth();
   const [car, setCar] = useState<Car | null>(null);
   const [loading, setLoading] = useState(true);
-  const [startDate, setStartDate] = useState('');
-  const [endDate, setEndDate] = useState('');
+  const [startDate, setStartDate] = useState(() => {
+    const tomorrow = new Date();
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    return tomorrow.toISOString().split('T')[0];
+  });
+  const [endDate, setEndDate] = useState(() => {
+    const dayAfterTomorrow = new Date();
+    dayAfterTomorrow.setDate(dayAfterTomorrow.getDate() + 2);
+    return dayAfterTomorrow.toISOString().split('T')[0];
+  });
   const [totalDays, setTotalDays] = useState(0);
   const [totalPrice, setTotalPrice] = useState(0);
+  const [showBookingModal, setShowBookingModal] = useState(false);
 
   useEffect(() => {
     if (id) {
@@ -37,13 +47,30 @@ const CarDetails: React.FC = () => {
   }, [id]);
 
   useEffect(() => {
-    if (startDate && endDate && car) {
+    if (startDate && endDate && car && car.pricePerDay) {
       const start = new Date(startDate);
       const end = new Date(endDate);
       const diffTime = Math.abs(end.getTime() - start.getTime());
       const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
       setTotalDays(diffDays);
-      setTotalPrice(diffDays * car.price_per_day);
+      
+      // Add validation to prevent NaN
+      const pricePerDay = Number(car.pricePerDay) || 0;
+      const calculatedTotal = diffDays * pricePerDay;
+      
+      console.log('Price calculation:', {
+        diffDays,
+        pricePerDay,
+        calculatedTotal,
+        car: car,
+        carPricePerDay: car.pricePerDay,
+        carPricePerDayType: typeof car.pricePerDay
+      });
+      
+      setTotalPrice(isNaN(calculatedTotal) || calculatedTotal <= 0 ? 0 : calculatedTotal);
+    } else if (startDate && endDate && car) {
+      console.warn('Car data missing pricePerDay:', car);
+      setTotalPrice(0);
     }
   }, [startDate, endDate, car]);
 
@@ -51,6 +78,7 @@ const CarDetails: React.FC = () => {
     try {
       setLoading(true);
       const response = await carsApi.getById(carId);
+      console.log('API response for car:', response.data);
       setCar(response.data);
     } catch (error) {
       console.error('Error fetching car details:', error);
@@ -60,7 +88,7 @@ const CarDetails: React.FC = () => {
         model: 'Camry',
         brand: 'Toyota',
         year: 2022,
-        price_per_day: 3735,
+        pricePerDay: 3735,
         location: 'Mumbai, Maharashtra',
         image_url: 'https://images.unsplash.com/photo-1621007947382-bb3c3994e3fb?auto=format&fit=crop&w=800&q=80',
         fuel_type: 'petrol',
@@ -68,6 +96,7 @@ const CarDetails: React.FC = () => {
         seats: 5,
         description: 'A reliable and comfortable sedan perfect for city drives and long trips. Features modern amenities and excellent fuel efficiency.'
       };
+      console.log('Using fallback car data:', sampleCar);
       setCar(sampleCar);
     } finally {
       setLoading(false);
@@ -85,18 +114,21 @@ const CarDetails: React.FC = () => {
       return;
     }
 
-    // Navigate to booking confirmation or payment page
-    navigate('/renter-dashboard', { 
-      state: { 
-        bookingData: {
-          car,
-          startDate,
-          endDate,
-          totalDays,
-          totalPrice
-        }
-      }
+    console.log('Opening booking modal with:', {
+      startDate,
+      endDate,
+      totalDays,
+      totalPrice,
+      car: car,
+      carPricePerDay: car?.pricePerDay
     });
+
+    setShowBookingModal(true);
+  };
+
+  const handleBookingSuccess = () => {
+    // Navigate to renter dashboard after successful booking
+    navigate('/renter-dashboard');
   };
 
   if (loading) {
@@ -161,15 +193,15 @@ const CarDetails: React.FC = () => {
                     <p className="text-gray-600 dark:text-gray-400">{car.year}</p>
                   </div>
                   <div className="text-right">
-                    <p className="text-3xl font-bold text-blue-600">{formatINR(car.price_per_day)}</p>
+                    <p className="text-3xl font-bold text-blue-600">{formatINR(car.pricePerDay)}</p>
                     <p className="text-gray-600 dark:text-gray-400">per day</p>
                   </div>
                 </div>
 
                 <div className="grid grid-cols-2 gap-4 mb-6">
                   <div className="flex items-center text-gray-600 dark:text-gray-400">
-                    <MapPin className="h-5 w-5 mr-2" />
-                    {car.location}
+                    <MapPin className="h-4 w-4 mr-2" />
+                    {typeof car.location === 'string' ? car.location : `${car.location?.city || ''}, ${car.location?.state || ''}`}
                   </div>
                   <div className="flex items-center text-gray-600 dark:text-gray-400">
                     <Users className="h-5 w-5 mr-2" />
@@ -219,7 +251,7 @@ const CarDetails: React.FC = () => {
                     value={startDate}
                     onChange={(e) => setStartDate(e.target.value)}
                     min={new Date().toISOString().split('T')[0]}
-                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-100 dark:text-gray-900"
                   />
                 </div>
 
@@ -232,7 +264,7 @@ const CarDetails: React.FC = () => {
                     value={endDate}
                     onChange={(e) => setEndDate(e.target.value)}
                     min={startDate || new Date().toISOString().split('T')[0]}
-                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-100 dark:text-gray-900"
                   />
                 </div>
 
@@ -244,7 +276,7 @@ const CarDetails: React.FC = () => {
                     </div>
                     <div className="flex justify-between items-center mb-2">
                       <span className="text-gray-600 dark:text-gray-400">Price per day:</span>
-                      <span className="font-medium text-gray-900 dark:text-white">{formatINR(car.price_per_day)}</span>
+                      <span className="font-medium text-gray-900 dark:text-white">{formatINR(car.pricePerDay)}</span>
                     </div>
                     <hr className="my-2 border-gray-200 dark:border-gray-600" />
                     <div className="flex justify-between items-center">
@@ -254,9 +286,17 @@ const CarDetails: React.FC = () => {
                   </div>
                 )}
 
+                {(!startDate || !endDate || totalDays <= 0) && (
+                  <div className="mb-3 p-3 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg">
+                    <p className="text-yellow-600 dark:text-yellow-400 text-sm">
+                      Please select valid pickup and drop-off dates to calculate the total price.
+                    </p>
+                  </div>
+                )}
+
                 <button
                   onClick={handleBooking}
-                  disabled={!startDate || !endDate}
+                  disabled={!startDate || !endDate || totalDays <= 0}
                   className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed text-white font-medium py-3 px-4 rounded-lg transition-colors"
                 >
                   {user ? 'Book Now' : 'Login to Book'}
@@ -272,6 +312,20 @@ const CarDetails: React.FC = () => {
           </div>
         </div>
       </div>
+
+      {/* Booking Confirmation Modal */}
+      {car && (
+        <BookingConfirmationModal
+          isOpen={showBookingModal}
+          onClose={() => setShowBookingModal(false)}
+          car={car}
+          startDate={startDate}
+          endDate={endDate}
+          totalDays={totalDays}
+          totalPrice={totalPrice}
+          onBookingSuccess={handleBookingSuccess}
+        />
+      )}
     </div>
   );
 };

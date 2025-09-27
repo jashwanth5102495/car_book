@@ -9,7 +9,7 @@ interface Car {
   model: string;
   brand: string;
   year: number;
-  price_per_day: number;
+  pricePerDay: number;
   location: string;
   image_url: string;
   fuel_type: string;
@@ -44,10 +44,22 @@ const Home: React.FC = () => {
       console.log('Cars data:', response.data);
       
       // Handle the nested response structure from backend
-      const carsData = response.data.cars || response.data;
+      let carsData;
+      if (response.data && response.data.data) {
+        // New format: { data: cars }
+        carsData = response.data.data;
+      } else if (response.data && Array.isArray(response.data)) {
+        // Old format: cars array directly
+        carsData = response.data;
+      } else if (response.data && response.data.cars) {
+        // Alternative format: { cars: [...] }
+        carsData = response.data.cars;
+      } else {
+        carsData = [];
+      }
       
       // If API returns empty or fails, use sample data
-      if (!carsData || carsData.length === 0) {
+      if (!carsData || !Array.isArray(carsData) || carsData.length === 0) {
         console.log('No cars from API, using sample data');
         const sampleCars = [
           {
@@ -55,7 +67,7 @@ const Home: React.FC = () => {
             model: 'Camry',
             brand: 'Toyota',
             year: 2022,
-            price_per_day: 3735,
+            pricePerDay: 3735,
             location: 'Mumbai, Maharashtra',
             image_url: 'https://images.unsplash.com/photo-1621007947382-bb3c3994e3fb?auto=format&fit=crop&w=800&q=80',
             fuel_type: 'petrol',
@@ -67,7 +79,7 @@ const Home: React.FC = () => {
             model: 'Civic',
             brand: 'Honda',
             year: 2023,
-            price_per_day: 3320,
+            pricePerDay: 3320,
             location: 'Delhi, Delhi',
             image_url: 'https://images.unsplash.com/photo-1606664515524-ed2f786a0bd6?auto=format&fit=crop&w=800&q=80',
             fuel_type: 'petrol',
@@ -79,7 +91,7 @@ const Home: React.FC = () => {
             model: 'Model 3',
             brand: 'Tesla',
             year: 2023,
-            price_per_day: 7055,
+            pricePerDay: 7055,
             location: 'Bangalore, Karnataka',
             image_url: 'https://images.unsplash.com/photo-1560958089-b8a1929cea89?auto=format&fit=crop&w=800&q=80',
             fuel_type: 'electric',
@@ -91,7 +103,7 @@ const Home: React.FC = () => {
             model: 'X5',
             brand: 'BMW',
             year: 2022,
-            price_per_day: 6225,
+            pricePerDay: 6225,
             location: 'Chennai, Tamil Nadu',
             image_url: 'https://images.unsplash.com/photo-1555215695-3004980ad54e?auto=format&fit=crop&w=800&q=80',
             fuel_type: 'petrol',
@@ -103,7 +115,7 @@ const Home: React.FC = () => {
             model: 'Mustang',
             brand: 'Ford',
             year: 2023,
-            price_per_day: 5395,
+            pricePerDay: 5395,
             location: 'Hyderabad, Telangana',
             image_url: 'https://images.unsplash.com/photo-1584345604476-8ec5e12e42dd?auto=format&fit=crop&w=800&q=80',
             fuel_type: 'petrol',
@@ -115,7 +127,7 @@ const Home: React.FC = () => {
             model: 'Prius',
             brand: 'Toyota',
             year: 2022,
-            price_per_day: 2905,
+            pricePerDay: 2905,
             location: 'Pune, Maharashtra',
             image_url: 'https://images.unsplash.com/photo-1549317661-bd32c8ce0db2?auto=format&fit=crop&w=800&q=80',
             fuel_type: 'hybrid',
@@ -136,7 +148,7 @@ const Home: React.FC = () => {
           model: 'Camry',
           brand: 'Toyota',
           year: 2022,
-          price_per_day: 3735,
+          pricePerDay: 3735,
           location: 'Mumbai, Maharashtra',
           image_url: 'https://images.unsplash.com/photo-1621007947382-bb3c3994e3fb?auto=format&fit=crop&w=800&q=80',
           fuel_type: 'petrol',
@@ -148,7 +160,7 @@ const Home: React.FC = () => {
           model: 'Civic',
           brand: 'Honda',
           year: 2023,
-          price_per_day: 3320,
+          pricePerDay: 3320,
           location: 'Delhi, Delhi',
           image_url: 'https://images.unsplash.com/photo-1606664515524-ed2f786a0bd6?auto=format&fit=crop&w=800&q=80',
           fuel_type: 'petrol',
@@ -160,7 +172,7 @@ const Home: React.FC = () => {
           model: 'Model 3',
           brand: 'Tesla',
           year: 2023,
-          price_per_day: 7055,
+          pricePerDay: 7055,
           location: 'Bangalore, Karnataka',
           image_url: 'https://images.unsplash.com/photo-1560958089-b8a1929cea89?auto=format&fit=crop&w=800&q=80',
           fuel_type: 'electric',
@@ -172,7 +184,7 @@ const Home: React.FC = () => {
           model: 'X5',
           brand: 'BMW',
           year: 2022,
-          price_per_day: 6225,
+          pricePerDay: 6225,
           location: 'Chennai, Tamil Nadu',
           image_url: 'https://images.unsplash.com/photo-1555215695-3004980ad54e?auto=format&fit=crop&w=800&q=80',
           fuel_type: 'petrol',
@@ -184,7 +196,7 @@ const Home: React.FC = () => {
           model: 'Mustang',
           brand: 'Ford',
           year: 2023,
-          price_per_day: 5395,
+          pricePerDay: 5395,
           location: 'Hyderabad, Telangana',
           image_url: 'https://images.unsplash.com/photo-1584345604476-8ec5e12e42dd?auto=format&fit=crop&w=800&q=80',
           fuel_type: 'petrol',
@@ -196,7 +208,7 @@ const Home: React.FC = () => {
           model: 'Prius',
           brand: 'Toyota',
           year: 2022,
-          price_per_day: 2905,
+          pricePerDay: 2905,
           location: 'Pune, Maharashtra',
           image_url: 'https://images.unsplash.com/photo-1549317661-bd32c8ce0db2?auto=format&fit=crop&w=800&q=80',
           fuel_type: 'hybrid',
@@ -397,7 +409,7 @@ const Home: React.FC = () => {
                         </div>
                         <div className="text-right">
                           <p className="text-2xl font-bold text-blue-600">
-                            {formatINR(car.price_per_day)}
+                            {formatINR(car.pricePerDay)}
                           </p>
                           <p className="text-sm text-gray-600 dark:text-gray-400">per day</p>
                         </div>
@@ -406,7 +418,7 @@ const Home: React.FC = () => {
                       <div className="flex items-center justify-between text-sm text-gray-600 dark:text-gray-400 mb-4">
                         <div className="flex items-center">
                           <MapPin className="h-4 w-4 mr-1" />
-                          {car.location}
+                          {typeof car.location === 'string' ? car.location : `${car.location?.city || ''}, ${car.location?.state || ''}`}
                         </div>
                         <div className="flex items-center">
                           <Fuel className="h-4 w-4 mr-1" />
