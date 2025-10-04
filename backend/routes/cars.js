@@ -130,7 +130,7 @@ router.post('/', auth, upload.array('images', 5), [
   body('year').isInt({ min: 1900, max: new Date().getFullYear() + 1 }).withMessage('Valid year is required'),
   body('category').isIn(['economy', 'compact', 'midsize', 'fullsize', 'luxury', 'suv', 'convertible', 'sports']).withMessage('Valid category is required'),
   body('transmission').isIn(['manual', 'automatic', 'cvt']).withMessage('Valid transmission is required'),
-  body('fuelType').isIn(['petrol', 'diesel', 'electric', 'hybrid']).withMessage('Valid fuel type is required'),
+  body('fuelType').isIn(['petrol', 'diesel', 'electric', 'hybrid', 'gasoline']).withMessage('Valid fuel type is required'),
   body('seats').isInt({ min: 2, max: 8 }).withMessage('Seats must be between 2 and 8'),
   body('doors').isInt({ min: 2, max: 5 }).withMessage('Doors must be between 2 and 5'),
   body('pricePerDay').isFloat({ min: 0 }).withMessage('Price per day must be a positive number'),
@@ -154,9 +154,21 @@ router.post('/', auth, upload.array('images', 5), [
       return res.status(400).json({ message: 'At least one image is required' });
     }
 
+    // Convert numeric fields and handle NaN
+    carData.year = parseInt(carData.year) || new Date().getFullYear();
+    carData.seats = parseInt(carData.seats) || 5;
+    carData.doors = parseInt(carData.doors) || 4;
+    carData.pricePerDay = parseFloat(carData.pricePerDay) || 0;
+    carData.mileage = parseInt(carData.mileage) || 0;
+
+    // Convert gasoline to petrol for backwards compatibility
+    if (carData.fuelType === 'gasoline') {
+      carData.fuelType = 'petrol';
+    }
+
     // Parse features if it's a string
     if (typeof carData.features === 'string') {
-      carData.features = carData.features.split(',').map(f => f.trim());
+      carData.features = carData.features.split(',').map(f => f.trim()).filter(f => f.length > 0);
     }
 
     // Handle nested location data from FormData
@@ -172,6 +184,20 @@ router.post('/', auth, upload.array('images', 5), [
       delete carData['location[city]'];
       delete carData['location[state]'];
       delete carData['location[zipCode]'];
+    }
+
+    // Validate required numeric fields
+    if (carData.pricePerDay <= 0) {
+      return res.status(400).json({ message: 'Price per day must be greater than 0' });
+    }
+    if (carData.year < 1900 || carData.year > new Date().getFullYear() + 1) {
+      return res.status(400).json({ message: 'Invalid year provided' });
+    }
+    if (carData.seats < 2 || carData.seats > 8) {
+      return res.status(400).json({ message: 'Seats must be between 2 and 8' });
+    }
+    if (carData.doors < 2 || carData.doors > 5) {
+      return res.status(400).json({ message: 'Doors must be between 2 and 5' });
     }
 
     // Set the owner to the authenticated user
