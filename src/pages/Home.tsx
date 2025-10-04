@@ -11,7 +11,8 @@ interface Car {
   year: number;
   pricePerDay: number;
   location: string;
-  image_url: string;
+  image_url?: string;
+  images?: string[];
   fuel_type: string;
   transmission: string;
   seats: number;
@@ -389,7 +390,7 @@ const Home: React.FC = () => {
                   <div key={car._id} className="bg-white dark:bg-gray-800 rounded-xl shadow-lg overflow-hidden hover:shadow-xl dark:hover:shadow-2xl transition-shadow group">
                     <div className="aspect-w-16 aspect-h-12 overflow-hidden">
                       <img
-                        src={car.image_url || 'https://images.unsplash.com/photo-1549317661-bd32c8ce0db2?auto=format&fit=crop&w=800&q=80'}
+                        src={car.images?.[0] ? `http://localhost:5001${car.images[0]}` : car.image_url || 'https://images.unsplash.com/photo-1549317661-bd32c8ce0db2?auto=format&fit=crop&w=800&q=80'}
                         alt={`${car.brand} ${car.model}`}
                         className="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-300"
                         onError={(e) => {
@@ -418,7 +419,7 @@ const Home: React.FC = () => {
                       <div className="flex items-center justify-between text-sm text-gray-600 dark:text-gray-400 mb-4">
                         <div className="flex items-center">
                           <MapPin className="h-4 w-4 mr-1" />
-                          {typeof car.location === 'string' ? car.location : `${car.location?.city || ''}, ${car.location?.state || ''}`}
+                          {car.location}
                         </div>
                         <div className="flex items-center">
                           <Fuel className="h-4 w-4 mr-1" />

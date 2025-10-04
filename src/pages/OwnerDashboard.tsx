@@ -95,7 +95,7 @@ const OwnerDashboard: React.FC = () => {
     year: new Date().getFullYear(),
     category: 'economy',
     transmission: 'automatic',
-    fuelType: 'gasoline',
+    fuelType: 'petrol',
     seats: 5,
     doors: 4,
     pricePerDay: 0,
@@ -324,7 +324,7 @@ const OwnerDashboard: React.FC = () => {
       year: new Date().getFullYear(),
       category: 'economy',
       transmission: 'automatic',
-      fuelType: 'gasoline',
+      fuelType: 'petrol',
       seats: 5,
       doors: 4,
       pricePerDay: 0,
@@ -559,7 +559,7 @@ const OwnerDashboard: React.FC = () => {
                 <div key={car._id} className="bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden">
                   <div className="relative h-48">
                     <img
-                      src={car.images[0] || '/placeholder-car.jpg'}
+                      src={car.images[0] ? `http://localhost:5001${car.images[0]}` : '/placeholder-car.jpg'}
                       alt={`${car.make} ${car.model}`}
                       className="w-full h-full object-cover"
                     />
@@ -654,7 +654,7 @@ const OwnerDashboard: React.FC = () => {
                     <div className="flex items-center justify-between mb-4">
                       <div className="flex items-center">
                         <img
-                          src={booking.car.images[0] || '/placeholder-car.jpg'}
+                          src={booking.car.images[0] ? `http://localhost:5001${booking.car.images[0]}` : '/placeholder-car.jpg'}
                           alt={`${booking.car.make} ${booking.car.model}`}
                           className="w-16 h-16 object-cover rounded-lg mr-4"
                         />
@@ -761,8 +761,8 @@ const OwnerDashboard: React.FC = () => {
                         required
                         min="1900"
                         max={new Date().getFullYear() + 1}
-                        value={carFormData.year}
-                        onChange={(e) => setCarFormData(prev => ({ ...prev, year: parseInt(e.target.value) }))}
+                        value={carFormData.year || ''}
+                        onChange={(e) => setCarFormData(prev => ({ ...prev, year: parseInt(e.target.value) || new Date().getFullYear() }))}
                         className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-100 dark:text-gray-900"
                       />
                     </div>
@@ -807,7 +807,7 @@ const OwnerDashboard: React.FC = () => {
                         onChange={(e) => setCarFormData(prev => ({ ...prev, fuelType: e.target.value }))}
                         className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-100 dark:text-gray-900"
                       >
-                        <option value="gasoline">Gasoline</option>
+                        <option value="petrol">Petrol</option>
                         <option value="diesel">Diesel</option>
                         <option value="hybrid">Hybrid</option>
                         <option value="electric">Electric</option>
@@ -822,8 +822,8 @@ const OwnerDashboard: React.FC = () => {
                         required
                         min="2"
                         max="8"
-                        value={carFormData.seats}
-                        onChange={(e) => setCarFormData(prev => ({ ...prev, seats: parseInt(e.target.value) }))}
+                        value={carFormData.seats || ''}
+                        onChange={(e) => setCarFormData(prev => ({ ...prev, seats: parseInt(e.target.value) || 5 }))}
                         className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-100 dark:text-gray-900"
                       />
                     </div>
@@ -836,8 +836,8 @@ const OwnerDashboard: React.FC = () => {
                         required
                         min="2"
                         max="5"
-                        value={carFormData.doors}
-                        onChange={(e) => setCarFormData(prev => ({ ...prev, doors: parseInt(e.target.value) }))}
+                        value={carFormData.doors || ''}
+                        onChange={(e) => setCarFormData(prev => ({ ...prev, doors: parseInt(e.target.value) || 4 }))}
                         className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-100 dark:text-gray-900"
                       />
                     </div>
@@ -849,8 +849,8 @@ const OwnerDashboard: React.FC = () => {
                         type="number"
                         required
                         min="1"
-                        value={carFormData.pricePerDay}
-                        onChange={(e) => setCarFormData(prev => ({ ...prev, pricePerDay: parseFloat(e.target.value) }))}
+                        value={carFormData.pricePerDay || ''}
+                        onChange={(e) => setCarFormData(prev => ({ ...prev, pricePerDay: parseFloat(e.target.value) || 0 }))}
                         className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-100 dark:text-gray-900"
                       />
                     </div>
@@ -898,8 +898,8 @@ const OwnerDashboard: React.FC = () => {
                         type="number"
                         required
                         min="0"
-                        value={carFormData.mileage}
-                        onChange={(e) => setCarFormData(prev => ({ ...prev, mileage: parseInt(e.target.value) }))}
+                        value={carFormData.mileage || ''}
+                        onChange={(e) => setCarFormData(prev => ({ ...prev, mileage: parseInt(e.target.value) || 0 }))}
                         className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-100 dark:text-gray-900"
                       />
                     </div>

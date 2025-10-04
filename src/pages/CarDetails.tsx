@@ -8,16 +8,34 @@ import BookingConfirmationModal from '../components/BookingConfirmationModal';
 
 interface Car {
   _id: string;
+  make: string;
   model: string;
-  brand: string;
   year: number;
   pricePerDay: number;
-  location: string;
-  image_url: string;
-  fuel_type: string;
+  location: {
+    address: string;
+    city: string;
+    state: string;
+    zipCode: string;
+  };
+  images: string[];
+  fuelType: string;
   transmission: string;
   seats: number;
+  doors: number;
+  features: string[];
   description?: string;
+  category: string;
+  licensePlate: string;
+  vin: string;
+  mileage: number;
+  color: string;
+  available: boolean;
+  rating: {
+    average: number;
+    count: number;
+  };
+  owner: string;
 }
 
 const CarDetails: React.FC = () => {
@@ -85,16 +103,34 @@ const CarDetails: React.FC = () => {
       // Fallback to sample data if API fails
       const sampleCar = {
         _id: carId,
+        make: 'Toyota',
         model: 'Camry',
-        brand: 'Toyota',
         year: 2022,
         pricePerDay: 3735,
-        location: 'Mumbai, Maharashtra',
-        image_url: 'https://images.unsplash.com/photo-1621007947382-bb3c3994e3fb?auto=format&fit=crop&w=800&q=80',
-        fuel_type: 'petrol',
+        location: {
+          address: '123 Main St',
+          city: 'Mumbai',
+          state: 'Maharashtra',
+          zipCode: '400001'
+        },
+        images: ['https://images.unsplash.com/photo-1621007947382-bb3c3994e3fb?auto=format&fit=crop&w=800&q=80'],
+        fuelType: 'petrol',
         transmission: 'automatic',
         seats: 5,
-        description: 'A reliable and comfortable sedan perfect for city drives and long trips. Features modern amenities and excellent fuel efficiency.'
+        doors: 4,
+        features: ['Air Conditioning', 'Bluetooth'],
+        description: 'A reliable and comfortable sedan perfect for city drives and long trips. Features modern amenities and excellent fuel efficiency.',
+        category: 'midsize',
+        licensePlate: 'MH01AB1234',
+        vin: 'SAMPLE1234567890',
+        mileage: 50000,
+        color: 'Silver',
+        available: true,
+        rating: {
+          average: 4.5,
+          count: 10
+        },
+        owner: 'sample-owner-id'
       };
       console.log('Using fallback car data:', sampleCar);
       setCar(sampleCar);
@@ -175,8 +211,8 @@ const CarDetails: React.FC = () => {
           <div>
             <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg overflow-hidden">
               <img
-                src={car.image_url}
-                alt={`${car.brand} ${car.model}`}
+                src={car.images?.[0] ? `http://localhost:5001${car.images[0]}` : '/placeholder-car.jpg'}
+                alt={`${car.make} ${car.model}`}
                 className="w-full h-64 sm:h-80 object-cover"
                 onError={(e) => {
                   const target = e.target as HTMLImageElement;
@@ -188,7 +224,7 @@ const CarDetails: React.FC = () => {
                 <div className="flex justify-between items-start mb-4">
                   <div>
                     <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
-                      {car.brand} {car.model}
+                      {car.make} {car.model}
                     </h1>
                     <p className="text-gray-600 dark:text-gray-400">{car.year}</p>
                   </div>
@@ -201,7 +237,7 @@ const CarDetails: React.FC = () => {
                 <div className="grid grid-cols-2 gap-4 mb-6">
                   <div className="flex items-center text-gray-600 dark:text-gray-400">
                     <MapPin className="h-4 w-4 mr-2" />
-                    {typeof car.location === 'string' ? car.location : `${car.location?.city || ''}, ${car.location?.state || ''}`}
+                    {car.location?.city}, {car.location?.state}
                   </div>
                   <div className="flex items-center text-gray-600 dark:text-gray-400">
                     <Users className="h-5 w-5 mr-2" />
@@ -209,7 +245,7 @@ const CarDetails: React.FC = () => {
                   </div>
                   <div className="flex items-center text-gray-600 dark:text-gray-400">
                     <Fuel className="h-5 w-5 mr-2" />
-                    {car.fuel_type}
+                    {car.fuelType}
                   </div>
                   <div className="flex items-center text-gray-600 dark:text-gray-400">
                     <Settings className="h-5 w-5 mr-2" />

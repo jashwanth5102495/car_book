@@ -6,15 +6,34 @@ import PaymentModal from './PaymentModal';
 
 interface Car {
   _id: string;
+  make: string;
   model: string;
-  brand: string;
   year: number;
   pricePerDay: number;
-  location: string;
-  image_url: string;
-  fuel_type: string;
+  location: {
+    address: string;
+    city: string;
+    state: string;
+    zipCode: string;
+  };
+  images: string[];
+  fuelType: string;
   transmission: string;
   seats: number;
+  doors: number;
+  features: string[];
+  description?: string;
+  category: string;
+  licensePlate: string;
+  vin: string;
+  mileage: number;
+  color: string;
+  available: boolean;
+  rating: {
+    average: number;
+    count: number;
+  };
+  owner: string;
 }
 
 interface BookingConfirmationModalProps {
@@ -121,7 +140,7 @@ const BookingConfirmationModal: React.FC<BookingConfirmationModalProps> = ({
       alert(`🎉 Booking Successful! 
       
 Booking ID: ${response.data._id}
-Car: ${car.brand} ${car.model}
+Car: ${car.make} ${car.model}
 Dates: ${new Date(startDate).toLocaleDateString()} - ${new Date(endDate).toLocaleDateString()}
 Total: ${formatINR(totalPrice)}
 
@@ -160,8 +179,8 @@ Your booking has been recorded in your dashboard!`);
           {/* Car Details */}
           <div className="flex flex-col sm:flex-row gap-4 mb-6">
             <img
-              src={car.image_url}
-              alt={`${car.brand} ${car.model}`}
+              src={car.images?.[0] ? `http://localhost:5001${car.images[0]}` : '/placeholder-car.jpg'}
+              alt={`${car.make} ${car.model}`}
               className="w-full sm:w-48 h-32 object-cover rounded-lg"
               onError={(e) => {
                 const target = e.target as HTMLImageElement;
@@ -170,12 +189,12 @@ Your booking has been recorded in your dashboard!`);
             />
             <div className="flex-1">
               <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">
-                {car.brand} {car.model} ({car.year})
+                {car.make} {car.model} ({car.year})
               </h3>
               <div className="grid grid-cols-2 gap-2 text-sm text-gray-600 dark:text-gray-400">
                 <div className="flex items-center">
                   <MapPin className="h-4 w-4 mr-1" />
-                  {typeof car.location === 'string' ? car.location : `${car.location?.city || ''}, ${car.location?.state || ''}`}
+                  {car.location?.city}, {car.location?.state}
                 </div>
                 <div className="flex items-center">
                   <Users className="h-4 w-4 mr-1" />
@@ -183,7 +202,7 @@ Your booking has been recorded in your dashboard!`);
                 </div>
                 <div className="flex items-center">
                   <Fuel className="h-4 w-4 mr-1" />
-                  {car.fuel_type}
+                  {car.fuelType}
                 </div>
                 <div className="flex items-center">
                   <Settings className="h-4 w-4 mr-1" />
