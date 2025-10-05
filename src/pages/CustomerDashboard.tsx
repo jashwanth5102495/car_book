@@ -327,7 +327,11 @@ const CustomerDashboard: React.FC = () => {
                 <div key={car._id} className="bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow">
                   <div className="relative h-48">
                     <img
-                      src={car.images?.[0] ? `http://localhost:5001${car.images[0]}` : '/placeholder-car.jpg'}
+                      src={car.images?.[0]
+                        ? (car.images[0].startsWith('http')
+                            ? car.images[0]
+                            : `http://localhost:5001${car.images[0]}`)
+                        : '/placeholder-car.jpg'}
                       alt={`${car.make} ${car.model}`}
                       className="w-full h-full object-cover"
                     />
@@ -402,7 +406,11 @@ const CustomerDashboard: React.FC = () => {
                     <div className="flex items-center justify-between mb-4">
                       <div className="flex items-center">
                         <img
-                          src={booking.car.images?.[0] ? `http://localhost:5001${booking.car.images[0]}` : '/placeholder-car.jpg'}
+                          src={booking.car.images?.[0]
+                            ? (booking.car.images[0].startsWith('http')
+                                ? booking.car.images[0]
+                                : `http://localhost:5001${booking.car.images[0]}`)
+                            : '/placeholder-car.jpg'}
                           alt={`${booking.car.make} ${booking.car.model}`}
                           className="w-16 h-16 object-cover rounded-lg mr-4"
                         />

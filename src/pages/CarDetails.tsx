@@ -211,7 +211,11 @@ const CarDetails: React.FC = () => {
           <div>
             <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg overflow-hidden">
               <img
-                src={car.images?.[0] ? `http://localhost:5001${car.images[0]}` : '/placeholder-car.jpg'}
+                src={car.images?.[0]
+                  ? (car.images[0].startsWith('http')
+                      ? car.images[0]
+                      : `http://localhost:5001${car.images[0]}`)
+                  : '/placeholder-car.jpg'}
                 alt={`${car.make} ${car.model}`}
                 className="w-full h-64 sm:h-80 object-cover"
                 onError={(e) => {

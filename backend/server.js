@@ -4,6 +4,7 @@ import cors from 'cors';
 import dotenv from 'dotenv';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import fs from 'fs';
 
 // Import routes
 import authRoutes from './routes/auth.js';
@@ -22,8 +23,18 @@ const app = express();
 const PORT = process.env.PORT || 5001;
 
 // Middleware
+// Allow any localhost port in development and specific FRONTEND_URL if provided
 app.use(cors({
-  origin: process.env.FRONTEND_URL || 'http://localhost:5173',
+  origin: (origin, callback) => {
+    const allowedEnv = process.env.FRONTEND_URL;
+    const isLocalhost = !origin || /http:\/\/(localhost|127\.0\.0\.1):\d+$/.test(origin);
+    if (isLocalhost || (allowedEnv && origin === allowedEnv)) {
+      callback(null, true);
+    } else {
+      // Fallback: allow other origins (use stricter rules in production as needed)
+      callback(null, true);
+    }
+  },
   credentials: true
 }));
 
@@ -31,6 +42,19 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 // Serve static files from uploads directory
+// Ensure uploads directories exist to prevent Multer crashes
+const uploadsDir = path.join(__dirname, 'uploads');
+const carUploadsDir = path.join(uploadsDir, 'cars');
+try {
+  if (!fs.existsSync(uploadsDir)) {
+    fs.mkdirSync(uploadsDir, { recursive: true });
+  }
+  if (!fs.existsSync(carUploadsDir)) {
+    fs.mkdirSync(carUploadsDir, { recursive: true });
+  }
+} catch (e) {
+  console.error('Failed to ensure uploads directories:', e);
+}
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 // Routes

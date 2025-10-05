@@ -10,7 +10,7 @@ interface Car {
   brand: string;
   year: number;
   pricePerDay: number;
-  location: string;
+  location: string | { address: string; city: string; state: string; zipCode: string };
   image_url?: string;
   images?: string[];
   fuel_type: string;
@@ -390,12 +390,16 @@ const Home: React.FC = () => {
                   <div key={car._id} className="bg-white dark:bg-gray-800 rounded-xl shadow-lg overflow-hidden hover:shadow-xl dark:hover:shadow-2xl transition-shadow group">
                     <div className="aspect-w-16 aspect-h-12 overflow-hidden">
                       <img
-                        src={car.images?.[0] ? `http://localhost:5001${car.images[0]}` : car.image_url || 'https://images.unsplash.com/photo-1549317661-bd32c8ce0db2?auto=format&fit=crop&w=800&q=80'}
+                        src={car.images?.[0]
+                          ? (car.images[0].startsWith('http')
+                              ? car.images[0]
+                              : `http://localhost:5001${car.images[0]}`)
+                          : car.image_url || 'https://images.pexels.com/photos/210019/pexels-photo-210019.jpeg?auto=compress&cs=tinysrgb&w=800'}
                         alt={`${car.brand} ${car.model}`}
                         className="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-300"
                         onError={(e) => {
                           const target = e.target as HTMLImageElement;
-                          target.src = 'https://images.unsplash.com/photo-1549317661-bd32c8ce0db2?auto=format&fit=crop&w=800&q=80';
+                          target.src = 'https://images.pexels.com/photos/210019/pexels-photo-210019.jpeg?auto=compress&cs=tinysrgb&w=800';
                         }}
                       />
                     </div>
@@ -419,7 +423,9 @@ const Home: React.FC = () => {
                       <div className="flex items-center justify-between text-sm text-gray-600 dark:text-gray-400 mb-4">
                         <div className="flex items-center">
                           <MapPin className="h-4 w-4 mr-1" />
-                          {car.location}
+                          {typeof car.location === 'string' 
+                            ? car.location 
+                            : `${car.location.city}, ${car.location.state}`}
                         </div>
                         <div className="flex items-center">
                           <Fuel className="h-4 w-4 mr-1" />

@@ -184,6 +184,31 @@ const OwnerDashboard: React.FC = () => {
   const handleAddCar = async (e: React.FormEvent) => {
     e.preventDefault();
     
+    // Basic client-side validation to avoid common server rejections
+    const validationErrors: string[] = [];
+    if (!carFormData.make?.trim()) validationErrors.push('Make is required');
+    if (!carFormData.model?.trim()) validationErrors.push('Model is required');
+    if (!carFormData.category?.trim()) validationErrors.push('Category is required');
+    if (!['manual', 'automatic', 'cvt'].includes(carFormData.transmission)) validationErrors.push('Transmission must be manual, automatic, or cvt');
+    if (!['petrol', 'diesel', 'electric', 'hybrid', 'gasoline'].includes(carFormData.fuelType)) validationErrors.push('Fuel type must be petrol, diesel, electric, hybrid, or gasoline');
+    if (!Number.isFinite(carFormData.year) || carFormData.year < 1900 || carFormData.year > new Date().getFullYear() + 1) validationErrors.push('Valid year is required');
+    if (!Number.isFinite(carFormData.seats) || carFormData.seats < 2 || carFormData.seats > 8) validationErrors.push('Seats must be between 2 and 8');
+    if (!Number.isFinite(carFormData.doors) || carFormData.doors < 2 || carFormData.doors > 5) validationErrors.push('Doors must be between 2 and 5');
+    if (!Number.isFinite(carFormData.pricePerDay) || carFormData.pricePerDay <= 0) validationErrors.push('Price per day must be greater than 0');
+    if (!carFormData.licensePlate?.trim()) validationErrors.push('License plate is required');
+    if (!carFormData.vin?.trim()) validationErrors.push('VIN is required');
+    if (!Number.isFinite(carFormData.mileage) || carFormData.mileage < 0) validationErrors.push('Mileage must be a positive number');
+    if (!carFormData.color?.trim()) validationErrors.push('Color is required');
+    if (!carFormData.location?.address?.trim()) validationErrors.push('Address is required');
+    if (!carFormData.location?.city?.trim()) validationErrors.push('City is required');
+    if (!carFormData.location?.state?.trim()) validationErrors.push('State is required');
+    if (!carFormData.location?.zipCode?.trim()) validationErrors.push('ZIP Code is required');
+
+    if (validationErrors.length > 0) {
+      alert(validationErrors.join('\n'));
+      return;
+    }
+
     if (selectedImages.length === 0) {
       alert('Please select at least one image for your car');
       return;
@@ -229,8 +254,26 @@ const OwnerDashboard: React.FC = () => {
         resetForm();
         alert('Car added successfully!');
       } else {
-        const error = await response.json();
-        alert(error.message || 'Failed to add car');
+        // Try to surface meaningful backend validation errors
+        let message = 'Failed to add car';
+        try {
+          const error = await response.json();
+          if (Array.isArray(error.errors)) {
+            // express-validator style: errors: [{ msg, param, ... }]
+            const msgs = error.errors.map((e: any) => e.msg || e).filter(Boolean);
+            if (msgs.length) message = msgs.join('\n');
+          } else if (typeof error.message === 'string' && error.message.trim()) {
+            // Mongoose or custom messages
+            message = error.message;
+            if (Array.isArray(error.errors) && error.errors.length) {
+              const extra = error.errors.map((e: any) => (typeof e === 'string' ? e : e.message || e)).filter(Boolean);
+              if (extra.length) message += `\n${extra.join('\n')}`;
+            }
+          }
+        } catch (_) {
+          // swallow JSON parse errors, keep generic message
+        }
+        alert(message);
       }
     } catch (error) {
       console.error('Error adding car:', error);
@@ -559,7 +602,11 @@ const OwnerDashboard: React.FC = () => {
                 <div key={car._id} className="bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden">
                   <div className="relative h-48">
                     <img
-                      src={car.images[0] ? `http://localhost:5001${car.images[0]}` : '/placeholder-car.jpg'}
+                      src={car.images[0]
+                        ? (car.images[0].startsWith('http')
+                            ? car.images[0]
+                            : `http://localhost:5001${car.images[0]}`)
+                        : '/placeholder-car.jpg'}
                       alt={`${car.make} ${car.model}`}
                       className="w-full h-full object-cover"
                     />

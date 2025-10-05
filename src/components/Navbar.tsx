@@ -10,6 +10,7 @@ const Navbar: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [isAdminLoading, setIsAdminLoading] = useState(false);
 
   const handleLogout = () => {
     logout();
@@ -19,13 +20,19 @@ const Navbar: React.FC = () => {
 
   const handleAdminLogin = async () => {
     try {
+      setIsAdminLoading(true);
       const success = await loginAsAdmin();
+      setIsAdminLoading(false);
       if (success) {
         navigate('/admin-dashboard');
         setIsMenuOpen(false);
+      } else {
+        alert('Admin login failed. Please ensure the admin user exists by running the backend script: node scripts/createAdmin.js');
       }
     } catch (error) {
+      setIsAdminLoading(false);
       console.error('Admin login failed:', error);
+      alert('Admin login failed. Please ensure the admin user exists and the backend is running.');
     }
   };
 
@@ -121,9 +128,10 @@ const Navbar: React.FC = () => {
                 
                 <button
                   onClick={handleAdminLogin}
-                  className="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-md text-sm font-medium transition-colors"
+                  disabled={isAdminLoading}
+                  className={`px-4 py-2 rounded-md text-sm font-medium transition-colors text-white ${isAdminLoading ? 'bg-purple-400 cursor-not-allowed' : 'bg-purple-600 hover:bg-purple-700'}`}
                 >
-                  Admin
+                  {isAdminLoading ? 'Logging in…' : 'Admin'}
                 </button>
                 
                 <Link
@@ -218,9 +226,10 @@ const Navbar: React.FC = () => {
                 <>
                   <button
                     onClick={handleAdminLogin}
-                    className="block w-full text-left px-3 py-2 rounded-md text-base font-medium text-white bg-purple-600 hover:bg-purple-700"
+                    disabled={isAdminLoading}
+                    className={`block w-full text-left px-3 py-2 rounded-md text-base font-medium text-white ${isAdminLoading ? 'bg-purple-400 cursor-not-allowed' : 'bg-purple-600 hover:bg-purple-700'}`}
                   >
-                    Admin
+                    {isAdminLoading ? 'Logging in…' : 'Admin'}
                   </button>
                   <Link
                     to="/login"

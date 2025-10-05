@@ -131,7 +131,11 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(data.message || 'Registration failed');
+        // Prefer backend message, otherwise show first validation error
+        const validationMsg = Array.isArray(data.errors) && data.errors.length > 0 
+          ? data.errors[0].msg 
+          : null;
+        throw new Error(data.message || validationMsg || 'Registration failed');
       }
 
       const user: User = {
@@ -145,7 +149,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       setUser(user);
       localStorage.setItem('token', data.token);
     } catch (error: any) {
-      throw new Error(error.message || 'Registration failed');
+      // Network or unexpected errors
+      const fallback = (typeof error?.message === 'string' && error.message) ? error.message : 'Registration failed';
+      throw new Error(fallback);
     }
   };
 

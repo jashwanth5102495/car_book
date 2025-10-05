@@ -12,7 +12,8 @@ import {
   XCircle,
   AlertCircle,
   Eye,
-  Edit
+  Edit,
+  Trash2
 } from 'lucide-react';
 import { formatINR } from '../utils/currency';
 
@@ -74,11 +75,76 @@ const AdminDashboard: React.FC = () => {
     pendingBookings: 0
   });
 
+  const handleDeleteCar = async (carId: string) => {
+    if (!confirm('Are you sure you want to delete this car?')) return;
+
+    try {
+      const token = localStorage.getItem('token');
+      const response = await fetch(`http://localhost:5001/api/cars/${carId}`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+
+      if (response.ok) {
+        // Remove from local state and refresh stats
+        setCars(prev => prev.filter(c => c._id !== carId));
+        setStats(prev => ({ ...prev, totalCars: Math.max(0, prev.totalCars - 1) }));
+        alert('Car deleted successfully');
+      } else {
+        const error = await response.json();
+        alert(error.message || 'Failed to delete car');
+      }
+    } catch (error) {
+      console.error('Error deleting car:', error);
+      alert('Failed to delete car');
+    }
+  };
+
   useEffect(() => {
     if (user && user.role === 'admin') {
       fetchAllData();
     }
   }, [user]);
+
+  const handleDeleteBooking = async (bookingId: string) => {
+    const canProceed = window.confirm('Cancel this booking? This cannot be undone.');
+    if (!canProceed) return;
+    try {
+      const token = localStorage.getItem('token');
+      const response = await fetch(`http://localhost:5001/api/bookings/${bookingId}`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+      let data: any = {};
+      try { data = await response.json(); } catch {}
+      if (response.ok) {
+        setBookings(prev => {
+          const next = prev.filter(b => b._id !== bookingId);
+          const totalRevenue = next.reduce((sum: number, b: Booking) => sum + (b.totalAmount || 0), 0);
+          const activeBookings = next.filter((b: Booking) => b.status === 'active').length;
+          const pendingBookings = next.filter((b: Booking) => b.status === 'pending').length;
+          setStats(prevStats => ({
+            ...prevStats,
+            totalBookings: next.length,
+            totalRevenue,
+            activeBookings,
+            pendingBookings
+          }));
+          return next;
+        });
+        alert('Booking deleted successfully');
+      } else {
+        alert(data?.message || 'Failed to cancel booking');
+      }
+    } catch (error) {
+      console.error('Error cancelling booking:', error);
+      alert('Failed to cancel booking');
+    }
+  };
 
   const fetchAllData = async () => {
     try {
@@ -344,6 +410,9 @@ const AdminDashboard: React.FC = () => {
                       <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
                         Created
                       </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                        Actions
+                      </th>
                     </tr>
                   </thead>
                   <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
@@ -384,6 +453,17 @@ const AdminDashboard: React.FC = () => {
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
                           {formatDate(booking.createdAt)}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <button
+                            onClick={() => handleDeleteBooking(booking._id)}
+                            disabled={!['pending','confirmed'].includes(booking.status)}
+                            className="inline-flex items-center px-3 py-1 text-xs font-medium rounded-md bg-red-100 hover:bg-red-200 text-red-700 dark:bg-red-900 dark:text-red-200 disabled:opacity-50"
+                            title={['pending','confirmed'].includes(booking.status) ? 'Cancel booking' : 'Only pending/confirmed can be cancelled'}
+                          >
+                            <Trash2 className="h-4 w-4 mr-1" />
+                            Delete
+                          </button>
                         </td>
                       </tr>
                     ))}
@@ -481,6 +561,9 @@ const AdminDashboard: React.FC = () => {
                       <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
                         Owner
                       </th>
+                      <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                        Actions
+                      </th>
                     </tr>
                   </thead>
                   <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
@@ -513,6 +596,16 @@ const AdminDashboard: React.FC = () => {
                           <div className="text-sm text-gray-900 dark:text-white">
                             {car.owner}
                           </div>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-right">
+                          <button
+                            onClick={() => handleDeleteCar(car._id)}
+                            className="inline-flex items-center px-3 py-1.5 rounded-md text-sm font-medium bg-red-600 hover:bg-red-700 text-white shadow-sm"
+                            title="Delete car"
+                          >
+                            <Trash2 className="h-4 w-4 mr-1" />
+                            Delete
+                          </button>
                         </td>
                       </tr>
                     ))}

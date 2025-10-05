@@ -43,12 +43,25 @@ const updateCarPrices = async () => {
           vin: `${updateData.make.substring(0,3).toUpperCase()}${Math.floor(Math.random() * 1000000000000000)}`,
           mileage: Math.floor(Math.random() * 50000),
           color: 'Black',
-          location: {
-            address: '123 Main St',
-            city: car.location?.split(',')[0] || 'Mumbai',
-            state: car.location?.split(',')[1]?.trim() || 'Maharashtra',
-            zipCode: '400001'
-          }
+          location: (() => {
+            // Support both string and object location shapes
+            const loc = car.location;
+            if (loc && typeof loc === 'object') {
+              return {
+                address: loc.address || '123 Main St',
+                city: loc.city || 'Mumbai',
+                state: loc.state || 'Maharashtra',
+                zipCode: loc.zipCode || '400001'
+              };
+            }
+            const parts = (typeof loc === 'string' ? loc : '').split(',');
+            return {
+              address: '123 Main St',
+              city: (parts[0] || 'Mumbai').trim(),
+              state: (parts[1] || 'Maharashtra').trim(),
+              zipCode: '400001'
+            };
+          })()
         };
 
         await carsCollection.updateOne(
